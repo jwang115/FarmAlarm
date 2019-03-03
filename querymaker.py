@@ -1,5 +1,5 @@
-def rawr(crop,lon,lat,dist):
-  pass
+def get_nearby_consumers_info(crop,lon,lat,dist):
+  return []
 
 def get_nearby_sales_info(crop,lon,lat,dist):
   return [get_sale_info(sale) for sale in get_nearby_sales(crop,lon,lat,dist)]
@@ -11,11 +11,11 @@ def get_nearby_sales(crop,lon,lat,dist):
   WHERE (\n\
   Crop = '%s'\n\
   AND\n\
-  ABS( SQUARE(Sales.lat*69-%f) + SQUARE(Sales.long * 69 - %f) < SQUARE(%d) )\n\
-  );" % (crop,lon,lat,dist))
+  ABS( (Sales.lat*69 - %f)*(Sales.lat*69 - %f) + (Sales.long * 69 - %f)*(Sales.long * 69 - %f) < (%d)*(%d) )\n\
+  )" % (crop,lon,lon,lat,lat,dist,dist))
 
 def get_sale_info(saleID):
-  return "SELECT\n\
+  return ("SELECT\n\
   Farmers.Picture as pic,\n\
   Farmers.Name as name,\n\
   Sales.Crop as crop,\n\
@@ -26,4 +26,4 @@ def get_sale_info(saleID):
   FROM Sales\n\
   LEFT JOIN Farmers\n\
   ON Sales.FarmerID = Farmers.FarmerID\n\
-  WHERE Sales.FarmerID = "+saleID+";"
+  WHERE Sales.FarmerID = %d" % saleID)

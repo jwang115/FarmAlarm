@@ -9,9 +9,7 @@ from querymaker import *
 
 app = Flask(__name__)
 
-DATABASE = 'schematest.db'#schema.sql'
-
-#DATABASE = '/path/to/database.db'
+DATABASE = 'schematest.db'
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -19,32 +17,26 @@ def get_db():
         db = g._database = sqlite3.connect(DATABASE)
     return db
 
-conn = sqlite3.connect('asdf.db')
-conn.execute('CREATE TABLE IF NOT EXISTS OtherCrops (IDCroprawr TEXT, ListofCustomersrawr TEXT)')
-
-
-conn.close()
-
-
 @app.route('/map/consumer',methods=['GET'])
 def consumer_map():
   c_lat = request.form["lat"]
   c_lon = request.form["lon"]
   c_crop = request.form["crop"]
   c_range = request.form["dist"]
-  query = get_nearby_sales_info(c_crop,c_lon,c_lat,c_range)
-  conn = sqlite3.connect('schematest.db')
-  relevant_sales = conn.execute(query)
+  conn = sqlite3.connect(DATABASE)
+  nearby_sales = conn.execute(get_nearby_sales(c_crop,c_lon,c_lat,c_range)+";")
+  relevant_sales = [conn.execute(get_sale_info(sale[0])) for sale in nearby_sales]
   lst = []
   for sale in relevant_sales:
+    sale = sale.fetchone()
     dct = {}
-    dct["pic"]=row[0]
-    dct["name"]=row[1]
-    dct["crop"]=row[2]
-    dct["lat"]=row[3]
-    dct["lon"]=row[4]
-    dct["t_start"]=row[5]
-    dct["t_end"]=row[6]
+    dct["pic"]=sale[0]
+    dct["name"]=sale[1]
+    dct["crop"]=sale[2]
+    dct["lat"]=sale[3]
+    dct["lon"]=sale[4]
+    dct["t_start"]=sale[5]
+    dct["t_end"]=sale[6]
     lst.append(dct)
   conn.close()
   return lst
