@@ -5,6 +5,7 @@ import itertools
 import datetime
 from time import strftime
 import sqlite3
+from querymaker import *
 
 app = Flask(__name__)
 
@@ -17,24 +18,36 @@ def get_db():
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
     return db
-  
+
 conn = sqlite3.connect('asdf.db')
-print("Opened database successfully");
 conn.execute('CREATE TABLE IF NOT EXISTS OtherCrops (IDCroprawr TEXT, ListofCustomersrawr TEXT)')
-print("Table created successfully");
+
+
 conn.close()
 
 
-
-
-
-
-
-
-
-
-
-
+@app.route('/map/consumer',methods=['GET'])
+def consumer_map():
+  c_lat = request.form["lat"]
+  c_lon = request.form["lon"]
+  c_crop = request.form["crop"]
+  c_range = request.form["dist"]
+  query = get_nearby_sales_info(c_crop,c_lon,c_lat,c_range)
+  conn = sqlite3.connect('schematest.db')
+  relevant_sales = conn.execute(query)
+  lst = []
+  for sale in relevant_sales:
+    dct = {}
+    dct["pic"]=row[0]
+    dct["name"]=row[1]
+    dct["crop"]=row[2]
+    dct["lat"]=row[3]
+    dct["lon"]=row[4]
+    dct["t_start"]=row[5]
+    dct["t_end"]=row[6]
+    lst.append(dct)
+  conn.close()
+  return lst
 
 @app.teardown_appcontext
 def close_connection(exception):
